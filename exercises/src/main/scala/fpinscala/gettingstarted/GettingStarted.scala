@@ -13,8 +13,9 @@ object MyModule {
     msg.format(x, abs(x))
   }
 
-  def main(args: Array[String]): Unit =
+  def main(args: Array[String]): Unit = {
     println(formatAbs(-42))
+  }
 
   // A definition of factorial, using a local, tail recursive function
   def factorial(n: Int): Int = {
@@ -36,7 +37,27 @@ object MyModule {
 
   // Exercise 1: Write a function to compute the nth fibonacci number
 
-  def fib(n: Int): Int = ???
+  def fib(n: Int): Int = {
+    @annotation.tailrec
+    def go(n: Int, cache:List[Int], neg:Boolean): Int = {
+      n match {
+        case degenerate if degenerate <= 1 => if (neg) -cache(degenerate) else cache(degenerate)
+        case _ => go(n-1, List(cache(1), cache(1)+cache(0)), !neg)
+      }
+    }
+
+    // F_n when (n < 0) is (-1)^(n+1)*F_abs(n)
+    // The recursion will stop when n=1, or repeat (n-1) times.
+    // Swapping the neg flag each iteration effectively gives us (-1)^(n-1), which is equal to (-1)^(n+1)
+    // Therefore, we set the initial condition to be false:
+    //    n == 0 (sign should be positive) => 0 iterations => iniital sign will not be reversed
+    //    n == 1 (sign should be positive) => 0 iterations => iniital sign will not be reversed
+    //    n == 2 (sign should be negative) => 1 iteration  => initial sign will     be reversed
+    //    n == 3 (sign should be positive) => 2 iterations => initial sign will not be reversed
+    val initialSign:Boolean = false
+    val fn:Int = go(abs(n), List(0,1), initialSign) // scala lint doesn't seem like putting false here
+    if (n >= 0) abs(fn) else fn
+  }
 
   // This definition and `formatAbs` are very similar..
   private def formatFactorial(n: Int) = {
@@ -49,6 +70,13 @@ object MyModule {
   def formatResult(name: String, n: Int, f: Int => Int) = {
     val msg = "The %s of %d is %d."
     msg.format(name, n, f(n))
+  }
+}
+
+object Fibonacci {
+  import MyModule._
+  def main(args: Array[String]): Unit = {
+    (-8 to 8).foreach((i:Int) => println(formatResult("Fibonacci", i, fib)))
   }
 }
 
